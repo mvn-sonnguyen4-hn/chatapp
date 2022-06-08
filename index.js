@@ -2,13 +2,14 @@ const express = require("express");
 const roomSchema = require("../models/room.model");
 const messageSchema = require("../models/message.model");
 const app = express();
+const path = require("path");
 const http = require('http');
+const cors = require("cors");
 const server = http.createServer(app);
 const io = require("socket.io")(server, {
   cors: {
     origin: "*",
     methods: ["GET", "POST"],
-    allowedHeaders: ["my-custom-header"],
     credentials: true
   }
 });
