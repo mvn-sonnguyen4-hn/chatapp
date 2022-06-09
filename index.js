@@ -1,21 +1,22 @@
 const express = require("express");
-const roomSchema = require("../models/room.model");
-const messageSchema = require("../models/message.model");
+const roomSchema = require("./models/room.model");
+const messageSchema = require("./models/message.model");
 const app = express();
 const path = require("path");
-const http = require('http');
-const cors = require("cors");
+const http = require("http");
 const server = http.createServer(app);
 const io = require("socket.io")(server, {
   cors: {
     origin: "*",
     methods: ["GET", "POST"],
-    credentials: true
-  }
+    allowedHeaders: ["Access-Control-Allow-Origin"],
+    credentials: true,
+  },
 });
 
 let users = [];
-
+const db = require("./config/db");
+db.connect();
 const addUser = (userId, socketId) => {
   !users.some((user) => user.userId === userId) &&
     users.push({ userId, socketId });
@@ -33,7 +34,6 @@ io.on("connection", (socket) => {
   //when connect
   console.log("a user connected.");
   socket.on("join", function (room) {
-    console.log('join room', room)
     socket.join(room);
   });
   //take userId and socketId from user
@@ -44,13 +44,11 @@ io.on("connection", (socket) => {
 
   //send and get message
   socket.on("sendMessage", async (data) => {
-    console.log(data)
     let { from, to, content } = data;
-    user = getUser(from);
+    let user = getUser(from);
     try {
       if (user) {
-        let room = await roomSchema.findOne({}).all("users", [from, to]);
-        console.log()
+        let room = await roomSchema.findOne({ users: { $all: [from, to] } });
         if (!room) {
           room = await roomSchema.create({
             users: [from, to],
@@ -83,7 +81,6 @@ io.on("connection", (socket) => {
     io.emit("getUsers", users);
   });
 });
-
 
 if (process.env.NODE_ENV === "production") {
   app.use(express.static("client/build"));

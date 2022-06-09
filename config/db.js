@@ -1,8 +1,8 @@
 const mongoose = require("mongoose");
-
+const URI='mongodb+srv://son:son@cluster0.euyaw.mongodb.net/foodapp?retryWrites=true&w=majority'
 async function connect() {
   try {
-    mongoose.connect(process.env.MONGO_URI, {
+    mongoose.connect(URI, {
       useNewUrlParser: true,
       useUnifiedTopology: true,
     });
@@ -14,5 +14,5 @@ async function connect() {
 
 module.exports = {
   connect,
-  mongoURI: process.env.MONGO_URI,
+  mongoURI: URI,
 };
