@@ -44,11 +44,12 @@ io.on("connection", (socket) => {
 
   //send and get message
   socket.on("sendMessage", async (data) => {
+    let room;
     let { from, to, content } = data;
     let user = getUser(from);
     try {
       if (user) {
-        let room = await roomSchema.findOne({ users: { $all: [from, to] } });
+        room = await roomSchema.findOne({ users: { $all: [from, to] } });
         if (!room) {
           room = await roomSchema.create({
             users: [from, to],
@@ -66,9 +67,11 @@ io.on("connection", (socket) => {
     } catch (err) {
       console.log(new Error(err).message);
     }
+    console.log(room._id)
     io.to(to).emit("getMessage", {
       from,
       to,
+      room_id: room._id,
       content,
       createAt: Date.now(),
     });
